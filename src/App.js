@@ -10,7 +10,8 @@ function App() {
   const [previousIndex, setPreviousIndex] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const imageCount = 16;
-  const [srcExts, setSrcExts] = useState(Array(imageCount).fill('jpg'));
+  const extOrder = ['jpg', 'JPG', 'jpeg', 'JPEG', 'PNG', 'png', 'webp'];
+  const [srcExts, setSrcExts] = useState(Array(imageCount).fill(extOrder[0]));
 
   const baseNames = Array.from({ length: imageCount }, (_, i) => `/photo${i + 1}`);
 
@@ -22,19 +23,19 @@ function App() {
     setSrcExts((prev) => {
       const next = [...prev];
       const current = next[index];
-      if (current === 'jpg') {
-        next[index] = 'JPG';
-      } else if (current === 'JPG') {
-        next[index] = 'jpeg';
-      } else if (current === 'jpeg') {
-        next[index] = 'JPEG';
-      } else if (current === 'JPEG') {
-        next[index] = 'png';
-      } else if (current === 'png') {
-        next[index] = 'webp';
+      const orderIdx = extOrder.indexOf(current);
+      if (orderIdx >= 0 && orderIdx < extOrder.length - 1) {
+        next[index] = extOrder[orderIdx + 1];
       } else {
-        // No more fallbacks; keep last attempted extension
-        next[index] = current;
+        next[index] = 'missing';
+        // If the broken image is the one currently shown, advance
+        if (index === currentIndex) {
+          const ni = (currentIndex + 1) % baseNames.length;
+          setPreviousIndex(currentIndex);
+          setCurrentIndex(ni);
+          setIsAnimating(true);
+          setTimeout(() => setIsAnimating(false), 450);
+        }
       }
       return next;
     });
@@ -96,13 +97,15 @@ function App() {
       {submittedCorrect && (
         <div className={`carousel${carouselVisible ? ' show' : ''}`}>
           <div className="carousel-track">
-            <img
-              className="carousel-thumb"
-              src={currentSrc((currentIndex - 1 + baseNames.length) % baseNames.length)}
-              onClick={goPrev}
-              alt="Previous memory"
-              onError={() => handleImageError((currentIndex - 1 + baseNames.length) % baseNames.length)}
-            />
+            {srcExts[(currentIndex - 1 + baseNames.length) % baseNames.length] !== 'missing' && (
+              <img
+                className="carousel-thumb"
+                src={currentSrc((currentIndex - 1 + baseNames.length) % baseNames.length)}
+                onClick={goPrev}
+                alt="Previous memory"
+                onError={() => handleImageError((currentIndex - 1 + baseNames.length) % baseNames.length)}
+              />
+            )}
             <div className="carousel-stage">
               {isAnimating && previousIndex !== null && (
                 <img
@@ -112,20 +115,24 @@ function App() {
                   onError={() => handleImageError(previousIndex)}
                 />
               )}
-              <img
-                className={`slide-image ${isAnimating ? 'fade-in' : 'shown'}`}
-                src={currentSrc(currentIndex)}
-                onError={() => handleImageError(currentIndex)}
-                alt={`Memory ${currentIndex + 1}`}
-              />
+              {srcExts[currentIndex] !== 'missing' && (
+                <img
+                  className={`slide-image ${isAnimating ? 'fade-in' : 'shown'}`}
+                  src={currentSrc(currentIndex)}
+                  onError={() => handleImageError(currentIndex)}
+                  alt={`Memory ${currentIndex + 1}`}
+                />
+              )}
             </div>
-            <img
-              className="carousel-thumb"
-              src={currentSrc((currentIndex + 1) % baseNames.length)}
-              onClick={goNext}
-              alt="Next memory"
-              onError={() => handleImageError((currentIndex + 1) % baseNames.length)}
-            />
+            {srcExts[(currentIndex + 1) % baseNames.length] !== 'missing' && (
+              <img
+                className="carousel-thumb"
+                src={currentSrc((currentIndex + 1) % baseNames.length)}
+                onClick={goNext}
+                alt="Next memory"
+                onError={() => handleImageError((currentIndex + 1) % baseNames.length)}
+              />
+            )}
           </div>
           <div className="carousel-controls">
             <button type="button" className="nav-btn" onClick={goPrev} aria-label="Previous photo">◀</button>
