@@ -185,7 +185,7 @@ body {
 
 .carousel-controls {
   display: flex;
-  gap: 18px;
+  gap: 28px;
   align-items: center;
   justify-content: center;
 }
@@ -234,7 +234,7 @@ body {
     opacity: 0.3;
   }
 
-  .carousel-controls { gap: 12px; }
+  .carousel-controls { gap: 18px; }
 
   .nav-btn { padding: 10px 12px; }
 }

@@ -1,5 +1,5 @@
 import './App.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function App() {
   const [answer, setAnswer] = useState('');
@@ -56,6 +56,22 @@ function App() {
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 450);
   }
+
+  // Keyboard navigation when carousel is visible
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (!submittedCorrect) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goPrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goNext();
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [submittedCorrect, currentIndex]);
 
   function handleSubmit(e) {
     e.preventDefault();
